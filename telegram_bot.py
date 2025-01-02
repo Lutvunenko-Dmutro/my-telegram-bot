@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio  # Додано імпорт asyncio
 import psycopg2
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
@@ -13,7 +14,7 @@ load_dotenv()
 
 # Встановлення логування
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # виправлення ключа на 'levelname'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -36,12 +37,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # Функція для зупинки бота
 async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Зупинка бота...')
-    context.application.stop()
+    await context.application.stop()
     await update.message.reply_text('Бот зупинено.')
 
 # Функція для завантаження відео з YouTube
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = update.message.text
+    original_video_path = ''
+    resized_video_path = ''
     if "youtube.com" in url or "youtu.be" in url:
         try:
             logger.info(f"Починаємо завантаження відео з URL: {url}")
@@ -50,7 +53,7 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 'outtmpl': 'videos/original_video.%(ext)s',
                 'noplaylist': True  # Завантажити лише одне відео
             }
-            
+
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = await asyncio.get_event_loop().run_in_executor(None, ydl.extract_info, url)
                 video_extension = info_dict['ext']
@@ -79,9 +82,9 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         finally:
             # Очищення тимчасових файлів
             try:
-                if os.path.exists(original_video_path):
+                if original_video_path and os.path.exists(original_video_path):
                     os.remove(original_video_path)
-                if os.path.exists(resized_video_path):
+                if resized_video_path and os.path.exists(resized_video_path):
                     os.remove(resized_video_path)
             except PermissionError as e:
                 logger.error(f"Помилка при видаленні файлу: {e}")
