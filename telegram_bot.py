@@ -6,6 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 import yt_dlp
 import subprocess
 from dotenv import load_dotenv
+from telegram.error import Conflict
 
 # Завантаження змінних середовища з файлу .env
 load_dotenv()
@@ -31,6 +32,12 @@ def get_db_connection():
 # Функція старту бота
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Привіт! Надішліть мені посилання на YouTube відео, і я завантажу його для вас.')
+
+# Функція для зупинки бота
+async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Зупинка бота...')
+    context.application.stop()
+    await update.message.reply_text('Бот зупинено.')
 
 # Функція для завантаження відео з YouTube
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -107,6 +114,14 @@ def actual_resize_video(input_path, output_path):
     else:
         logger.info(f"Завершено зменшення розміру відео: {output_path}")
 
+# Обробник помилок
+async def error_handler(update, context):
+    logger.error(msg="Exception while handling an update:", exc_info=context.error)
+    try:
+        raise context.error
+    except Conflict:
+        logger.error("Конфлікт: бот вже запущений на іншому сервері або процесі")
+
 # Визначення функції main
 def main() -> None:
     # Встановлення токену Telegram бота
@@ -115,7 +130,9 @@ def main() -> None:
     application = ApplicationBuilder().token(token).read_timeout(60).write_timeout(60).build()
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("stop", stop))  # Додаємо команду для зупинки бота
     application.add_handler(MessageHandler(filters.Regex(r'(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+'), download_video))
+    application.add_error_handler(error_handler)
 
     application.run_polling()
 
