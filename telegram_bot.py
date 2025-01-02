@@ -1,25 +1,31 @@
 import os
 import logging
+import psycopg2
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
-import praw
 import subprocess
+from dotenv import load_dotenv
+
+# Завантаження змінних середовища з файлу .env
+load_dotenv()
 
 # Встановлення логування
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelень)s - %(message)s', level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Налаштування Reddit клієнта
-reddit = praw.Reddit(
-    client_id=os.getenv('REDDIT_CLIENT_ID'),
-    client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-    user_agent=os.getenv('REDDIT_USER_AGENT'),
-    username=os.getenv('REDDIT_USERNAME'),
-    password=os.getenv('REDDIT_PASSWORD')
-)
+# Підключення до бази даних PostgreSQL
+def get_db_connection():
+    conn = psycopg2.connect(
+        dbname=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        host=os.getenv('DB_HOST'),
+        port=os.getenv('DB_PORT')
+    )
+    return conn
 
 # Функція старту бота
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -58,13 +64,6 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     await update.message.reply_video(video)
                 logger.info("Відео успішно відправлено")
                 await update.message.reply_text('Відео успішно завантажено та відправлено!')
-
-                # Публікація на Reddit
-                subreddit = reddit.subreddit('YOUR_SUBREDDIT')
-                title = 'Завантажене відео з YouTube'
-                selftext = f'Відео завантажене з посиланням: {url}'
-                subreddit.submit(title, selftext=selftext)
-                await update.message.reply_text('Відео успішно опубліковано на Reddit!')
 
         except Exception as e:
             logger.error(f"Помилка при завантаженні відео: {e}")
@@ -109,7 +108,7 @@ def actual_resize_video(input_path, output_path):
 
 # Визначення функції main
 def main() -> None:
-    # Вставте свій токен Telegram бота тут
+    # Встановлення токену Telegram бота
     token = os.getenv('TOKEN')
 
     application = ApplicationBuilder().token(token).read_timeout(60).write_timeout(60).build()
