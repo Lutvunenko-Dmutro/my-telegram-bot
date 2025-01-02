@@ -3,10 +3,10 @@ import logging
 import asyncio
 import psycopg2
 import sys
+import subprocess
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
-import subprocess
 from dotenv import load_dotenv
 from telegram.error import Conflict
 
@@ -15,7 +15,7 @@ load_dotenv()
 
 # Встановлення логування
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelень)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ async def version(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Перезапуск бота...')
     await context.application.stop()
-    os.execv(sys.executable, ['python'] + sys.argv)
+    subprocess.Popen([sys.executable] + sys.argv)
 
 # Функція для завантаження відео з YouTube
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
