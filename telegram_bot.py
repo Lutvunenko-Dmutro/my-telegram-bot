@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Встановлення версії бота
-BOT_VERSION = "1.0.0"
+BOT_VERSION = "1.0.1"
 
 # Підключення до бази даних PostgreSQL
 def get_db_connection():
@@ -136,6 +136,8 @@ async def error_handler(update, context):
 def main() -> None:
     # Встановлення токену Telegram бота
     token = os.getenv('TOKEN')
+
+    logger.info(f"Запуск Telegram бота версії {BOT_VERSION}")
 
     application = ApplicationBuilder().token(token).read_timeout(60).write_timeout(60).build()
 
