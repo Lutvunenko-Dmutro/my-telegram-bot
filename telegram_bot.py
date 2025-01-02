@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Встановлення версії бота
-BOT_VERSION = "1.0.0"
+BOT_VERSION = "1.0.1"
 
 # Підключення до бази даних PostgreSQL
 def get_db_connection():
