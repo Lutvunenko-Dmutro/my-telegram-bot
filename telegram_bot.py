@@ -2,6 +2,7 @@ import os
 import logging
 import asyncio
 import psycopg2
+import sys
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
@@ -20,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Встановлення версії бота
-BOT_VERSION = "1.0.1"
+BOT_VERSION = "1.0.0"
 
 # Підключення до бази даних PostgreSQL
 def get_db_connection():
@@ -46,6 +47,12 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # Функція для отримання версії бота
 async def version(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Версія бота: {BOT_VERSION}')
+
+# Функція для перезапуску бота
+async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Перезапуск бота...')
+    await context.application.stop()
+    os.execv(sys.executable, ['python'] + sys.argv)
 
 # Функція для завантаження відео з YouTube
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -144,6 +151,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("stop", stop))  # Додаємо команду для зупинки бота
     application.add_handler(CommandHandler("version", version))  # Додаємо команду для перевірки версії
+    application.add_handler(CommandHandler("restart", restart))  # Додаємо команду для перезапуску бота
     application.add_handler(MessageHandler(filters.Regex(r'(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.+'), download_video))
     application.add_error_handler(error_handler)
 
