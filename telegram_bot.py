@@ -12,7 +12,8 @@ load_dotenv()
 
 # Встановлення логування
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelень)s - %(message)s', level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # виправлення ключа на 'levelname'
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 

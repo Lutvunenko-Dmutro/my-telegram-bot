@@ -2,3 +2,4 @@ python-dotenv
 psycopg2
 python-telegram-bot
 yt-dlp
+httpx
